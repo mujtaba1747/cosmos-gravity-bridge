@@ -55,7 +55,7 @@ func (k Keeper) BuildOutgoingTXBatch(
 		BatchNonce:    nextID,
 		BatchTimeout:  k.getBatchTimeoutHeight(ctx),
 		Transactions:  selectedTx,
-		TokenContract: contractAddress,
+		TokenContract: &types.EthAddress{contractAddress.Address},
 		Block:         0,
 	}
 	k.StoreBatch(ctx, batch)
@@ -64,10 +64,11 @@ func (k Keeper) BuildOutgoingTXBatch(
 	checkpoint := batch.GetCheckpoint(k.GetGravityID(ctx))
 	k.SetPastEthSignatureCheckpoint(ctx, checkpoint)
 
+	addr := k.GetBridgeContractAddress(ctx)
 	batchEvent := sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
+		sdk.NewAttribute(types.AttributeKeyContract, addr.Optional.Address),
 		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchID, fmt.Sprint(nextID)),
 		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nextID)),
@@ -108,7 +109,7 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract *types.Et
 	// Iterate through remaining batches
 	k.IterateOutgoingTXBatches(ctx, func(key []byte, iter_batch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
-		if iter_batch.BatchNonce < b.BatchNonce && iter_batch.TokenContract == tokenContract {
+		if iter_batch.BatchNonce < b.BatchNonce && iter_batch.TokenContract.Address == tokenContract.Address {
 			err := k.CancelOutgoingTXBatch(ctx, tokenContract, iter_batch.BatchNonce)
 			if err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute %s %d with %s", tokenContract, iter_batch.BatchNonce, tokenContract, nonce, err))
@@ -207,10 +208,11 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract *types.EthA
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, *batch)
 
+	addr := k.GetBridgeContractAddress(ctx)
 	batchEvent := sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
+		sdk.NewAttribute(types.AttributeKeyContract, addr.Optional.Address),
 		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchID, fmt.Sprint(nonce)),
 		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nonce)),
@@ -249,7 +251,7 @@ func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token *types.Et
 	var lastBatch *types.OutgoingTxBatch = nil
 	lastNonce := uint64(0)
 	for _, batch := range batches {
-		if batch.TokenContract == token && batch.BatchNonce > lastNonce {
+		if batch.TokenContract.Address == token.Address && batch.BatchNonce > lastNonce {
 			lastBatch = batch
 			lastNonce = batch.BatchNonce
 		}

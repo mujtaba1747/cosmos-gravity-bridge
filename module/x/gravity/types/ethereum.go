@@ -45,12 +45,13 @@ func (ea EthAddress) ValidateBasic() error {
 	if ea.Address == "" {
 		return fmt.Errorf("empty")
 	}
+	if len(ea.Address) != ETHContractAddressLen {
+		return fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", ea.Address, ETHContractAddressLen, len(ea.Address))
+	}
 	if !regexp.MustCompile("^0x[0-9a-fA-F]{40}$").MatchString(ea.Address) {
 		return fmt.Errorf("address(%s) doesn't pass regex", ea.Address)
 	}
-	if len(ea.Address) != ETHContractAddressLen {
-		return fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", ea.Address, len(ea.Address), ETHContractAddressLen)
-	}
+
 	return nil
 }
 
@@ -93,6 +94,22 @@ func NewOptionalEthAddress(address string) (*OptionalEthAddress, error) {
 		IsNil:    ethAddress == nil,
 		Optional: ethAddress,
 	}, err
+}
+
+func (oea OptionalEthAddress) ValidateBasic() error {
+	if oea.IsNil && oea.Optional != nil {
+		return fmt.Errorf("supposed to be nil but isn't")
+	}
+	if !oea.IsNil && oea.Optional == nil {
+		return fmt.Errorf("not supposed to be nil but is")
+	}
+	if !oea.IsNil {
+		err := oea.Optional.ValidateBasic()
+		if err != nil && !strings.Contains(err.Error(), "empty") {
+			return err
+		}
+	}
+	return nil
 }
 
 /////////////////////////

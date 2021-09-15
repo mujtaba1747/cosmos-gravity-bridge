@@ -146,21 +146,21 @@ var (
 	// derive the address from them.
 
 	// EthAddrs holds etheruem addresses
-	EthAddrs = []gethcommon.Address{
-		gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(1)}, 20)),
-		gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(2)}, 20)),
-		gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(3)}, 20)),
-		gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(4)}, 20)),
-		gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(5)}, 20)),
+	EthAddrs = []*types.EthAddress{
+		{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(1)}, 20)).String()},
+		{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(2)}, 20)).String()},
+		{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(3)}, 20)).String()},
+		{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(4)}, 20)).String()},
+		{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(5)}, 20)).String()},
 	}
 
 	// TokenContractAddrs holds example token contract addresses
-	TokenContractAddrs = []string{
-		"0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
-		"0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e", // YFI
-		"0x1f9840a85d5af5bf1d1762f925bdaddc4201f984", // UNI
-		"0xc00e94cb662c3520282e6f5717214004a7f26888", // COMP
-		"0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f", // SNX
+	TokenContractAddrs = []*types.EthAddress{
+		{"0x6b175474e89094c44da98b954eedeac495271d0f"}, // DAI
+		{"0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"}, // YFI
+		{"0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"}, // UNI
+		{"0xc00e94cb662c3520282e6f5717214004a7f26888"}, // COMP
+		{"0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f"}, // SNX
 	}
 
 	// InitTokens holds the number of tokens to initialize an account with
@@ -188,7 +188,7 @@ var (
 	TestingGravityParams = types.Params{
 		GravityId:                    "testgravityid",
 		ContractSourceHash:           "62328f7bc12efb28f86111d08c29b39285680a906ea0e524e0209d6f6657b713",
-		BridgeEthereumAddress:        &types.OptionalEthAddress{Optional: &types.EthAddress{"0x8858eeb3dfffa017d4bce9801d340d36cf895ccf"}, IsNil: false},
+		BridgeEthereumAddress:        "0x8858eeb3dfffa017d4bce9801d340d36cf895ccf",
 		BridgeChainId:                11,
 		SignedValsetsWindow:          10,
 		SignedBatchesWindow:          10,
@@ -259,7 +259,7 @@ func SetupFiveValChain(t *testing.T) (TestInput, sdk.Context) {
 
 	// Register eth addresses for each validator
 	for i, addr := range ValAddrs {
-		input.GravityKeeper.SetEthAddressForValidator(input.Context, addr, &types.EthAddress{EthAddrs[i].String()})
+		input.GravityKeeper.SetEthAddressForValidator(input.Context, addr, EthAddrs[i])
 	}
 
 	// Return the test input

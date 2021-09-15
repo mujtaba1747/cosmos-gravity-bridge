@@ -69,10 +69,11 @@ func (k Keeper) SetParams(ctx sdk.Context, ps types.Params) {
 }
 
 // GetBridgeContractAddress returns the bridge contract address on ETH
-func (k Keeper) GetBridgeContractAddress(ctx sdk.Context) string {
+func (k Keeper) GetBridgeContractAddress(ctx sdk.Context) *types.OptionalEthAddress {
 	var a string
 	k.paramSpace.Get(ctx, types.ParamsStoreKeyBridgeContractAddress, &a)
-	return a
+	addr, _ := types.NewOptionalEthAddress(a)
+	return addr
 }
 
 // GetBridgeChainID returns the chain id of the ETH chain we are running against

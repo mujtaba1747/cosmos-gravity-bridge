@@ -10,14 +10,14 @@ import (
 
 func TestValidateMsgSetOrchestratorAddress(t *testing.T) {
 	var (
-		ethAddress                   = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
+		ethAddress                   = EthAddress{"0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"}
 		cosmosAddress sdk.AccAddress = bytes.Repeat([]byte{0x1}, sdk.AddrLen)
 		valAddress    sdk.ValAddress = bytes.Repeat([]byte{0x1}, sdk.AddrLen)
 	)
 	specs := map[string]struct {
 		srcCosmosAddr sdk.AccAddress
 		srcValAddr    sdk.ValAddress
-		srcETHAddr    string
+		srcETHAddr    EthAddress
 		expErr        bool
 	}{
 		"all good": {
@@ -55,13 +55,13 @@ func TestValidateMsgSetOrchestratorAddress(t *testing.T) {
 		"invalid eth address": {
 			srcValAddr:    valAddress,
 			srcCosmosAddr: cosmosAddress,
-			srcETHAddr:    "invalid",
+			srcETHAddr:    EthAddress{"invalid"},
 			expErr:        true,
 		},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			msg := NewMsgSetOrchestratorAddress(spec.srcValAddr, spec.srcCosmosAddr, spec.srcETHAddr)
+			msg := NewMsgSetOrchestratorAddress(spec.srcValAddr, spec.srcCosmosAddr, &spec.srcETHAddr)
 			// when
 			err := msg.ValidateBasic()
 			if spec.expErr {

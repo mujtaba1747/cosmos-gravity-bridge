@@ -19,16 +19,16 @@ import (
 //nolint: exhaustivestruct
 func TestQueryValsetConfirm(t *testing.T) {
 	var (
-		nonce                                       = uint64(1)
-		myValidatorCosmosAddr, _                    = sdk.AccAddressFromBech32("cosmos1ees2tqhhhm9ahlhceh2zdguww9lqn2ckukn86l")
-		myValidatorEthereumAddr  gethcommon.Address = gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(50)}, 20))
+		nonce                    = uint64(1)
+		myValidatorCosmosAddr, _ = sdk.AccAddressFromBech32("cosmos1ees2tqhhhm9ahlhceh2zdguww9lqn2ckukn86l")
+		myValidatorEthereumAddr  = &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(50)}, 20)).String()}
 	)
 	input := CreateTestEnv(t)
 	ctx := input.Context
 	input.GravityKeeper.SetValsetConfirm(ctx, types.MsgValsetConfirm{
 		Nonce:        nonce,
 		Orchestrator: myValidatorCosmosAddr.String(),
-		EthAddress:   myValidatorEthereumAddr.String(),
+		EthAddress:   myValidatorEthereumAddr,
 		Signature:    "alksdjhflkasjdfoiasjdfiasjdfoiasdj",
 	})
 
@@ -41,7 +41,7 @@ func TestQueryValsetConfirm(t *testing.T) {
 		"all good": {
 			srcNonce: "1",
 			srcAddr:  myValidatorCosmosAddr.String(),
-			expResp:  []byte(`{"type":"gravity/MsgValsetConfirm", "value":{"eth_address":"0x3232323232323232323232323232323232323232", "nonce": "1", "orchestrator": "cosmos1ees2tqhhhm9ahlhceh2zdguww9lqn2ckukn86l",  "signature": "alksdjhflkasjdfoiasjdfiasjdfoiasdj"}}`),
+			expResp:  []byte(`{"type":"gravity/MsgValsetConfirm", "value":{"eth_address":{"address":"0x3232323232323232323232323232323232323232"}, "nonce": "1", "orchestrator": "cosmos1ees2tqhhhm9ahlhceh2zdguww9lqn2ckukn86l",  "signature": "alksdjhflkasjdfoiasjdfiasjdfoiasdj"}}`),
 		},
 		"unknown nonce": {
 			srcNonce: "999999",
@@ -89,7 +89,7 @@ func TestAllValsetConfirmsBynonce(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		addr, _ := sdk.AccAddressFromBech32(addrs[i])
 		msg := types.MsgValsetConfirm{}
-		msg.EthAddress = gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(i + 1)}, 20)).String()
+		msg.EthAddress = &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(i + 1)}, 20)).String()}
 		msg.Nonce = uint64(1)
 		msg.Orchestrator = addr.String()
 		msg.Signature = fmt.Sprintf("signature %d", i+1)
@@ -104,9 +104,9 @@ func TestAllValsetConfirmsBynonce(t *testing.T) {
 		"all good": {
 			srcNonce: "1",
 			expResp: []byte(`[
-      {"eth_address":"0x0202020202020202020202020202020202020202", "nonce": "1", "orchestrator": "cosmos1krtcsrxhadj54px0vy6j33pjuzcd3jj8kmsazv", "signature": "signature 2"},
-	  {"eth_address":"0x0303030303030303030303030303030303030303", "nonce": "1", "orchestrator": "cosmos1u94xef3cp9thkcpxecuvhtpwnmg8mhlja8hzkd", "signature": "signature 3"},
-	  {"eth_address":"0x0101010101010101010101010101010101010101", "nonce": "1", "orchestrator": "cosmos1u508cfnsk2nhakv80vdtq3nf558ngyvldkfjj9", "signature": "signature 1"}
+      {"eth_address":{"address":"0x0202020202020202020202020202020202020202"}, "nonce": "1", "orchestrator": "cosmos1krtcsrxhadj54px0vy6j33pjuzcd3jj8kmsazv", "signature": "signature 2"},
+	  {"eth_address":{"address":"0x0303030303030303030303030303030303030303"}, "nonce": "1", "orchestrator": "cosmos1u94xef3cp9thkcpxecuvhtpwnmg8mhlja8hzkd", "signature": "signature 3"},
+	  {"eth_address":{"address":"0x0101010101010101010101010101010101010101"}, "nonce": "1", "orchestrator": "cosmos1u508cfnsk2nhakv80vdtq3nf558ngyvldkfjj9", "signature": "signature 1"}
 ]`),
 		},
 		"unknown nonce": {
@@ -146,7 +146,7 @@ func TestLastValsetRequests(t *testing.T) {
 		for j := 0; j <= i; j++ {
 			// add an validator each block
 			valAddr := bytes.Repeat([]byte{byte(j)}, sdk.AddrLen)
-			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String())
+			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String()})
 			validators = append(validators, valAddr)
 		}
 		input.GravityKeeper.StakingKeeper = NewStakingKeeperMock(validators...)
@@ -163,31 +163,31 @@ func TestLastValsetRequests(t *testing.T) {
   "nonce": "6",
   "height": "105",
   "reward_amount": "0",
-  "reward_token": "0x0000000000000000000000000000000000000000",
+  "reward_token": {"address":"0x0000000000000000000000000000000000000000"},
   "members": [
     {
       "power": "715827882",
-      "ethereum_address": "0x0101010101010101010101010101010101010101"
+      "ethereum_address": {"address":"0x0101010101010101010101010101010101010101"}
     },
     {
       "power": "715827882",
-      "ethereum_address": "0x0202020202020202020202020202020202020202"
+      "ethereum_address": {"address":"0x0202020202020202020202020202020202020202"}
     },
     {
       "power": "715827882",
-      "ethereum_address": "0x0303030303030303030303030303030303030303"
+      "ethereum_address": {"address":"0x0303030303030303030303030303030303030303"}
     },
     {
       "power": "715827882",
-      "ethereum_address": "0x0404040404040404040404040404040404040404"
+      "ethereum_address": {"address":"0x0404040404040404040404040404040404040404"}
     },
     {
       "power": "715827882",
-      "ethereum_address": "0x0505050505050505050505050505050505050505"
+      "ethereum_address": {"address":"0x0505050505050505050505050505050505050505"}
     },
     {
       "power": "715827882",
-      "ethereum_address": "0x0606060606060606060606060606060606060606"
+      "ethereum_address": {"address":"0x0606060606060606060606060606060606060606"}
     }
   ]
 },
@@ -195,27 +195,27 @@ func TestLastValsetRequests(t *testing.T) {
   "nonce": "5",
   "height": "104",
   "reward_amount": "0",
-  "reward_token": "0x0000000000000000000000000000000000000000",
+  "reward_token": {"address":"0x0000000000000000000000000000000000000000"},
   "members": [
     {
       "power": "858993459",
-      "ethereum_address": "0x0101010101010101010101010101010101010101"
+      "ethereum_address": {"address":"0x0101010101010101010101010101010101010101"}
     },
     {
       "power": "858993459",
-      "ethereum_address": "0x0202020202020202020202020202020202020202"
+      "ethereum_address": {"address":"0x0202020202020202020202020202020202020202"}
     },
     {
       "power": "858993459",
-      "ethereum_address": "0x0303030303030303030303030303030303030303"
+      "ethereum_address": {"address":"0x0303030303030303030303030303030303030303"}
     },
     {
       "power": "858993459",
-      "ethereum_address": "0x0404040404040404040404040404040404040404"
+      "ethereum_address": {"address":"0x0404040404040404040404040404040404040404"}
     },
     {
       "power": "858993459",
-      "ethereum_address": "0x0505050505050505050505050505050505050505"
+      "ethereum_address": {"address":"0x0505050505050505050505050505050505050505"}
     }
   ]
 },
@@ -223,23 +223,23 @@ func TestLastValsetRequests(t *testing.T) {
   "nonce": "4",
   "height": "103",
   "reward_amount": "0",
-  "reward_token": "0x0000000000000000000000000000000000000000",
+  "reward_token": {"address":"0x0000000000000000000000000000000000000000"},
   "members": [
     {
       "power": "1073741823",
-      "ethereum_address": "0x0101010101010101010101010101010101010101"
+      "ethereum_address": {"address":"0x0101010101010101010101010101010101010101"}
     },
     {
       "power": "1073741823",
-      "ethereum_address": "0x0202020202020202020202020202020202020202"
+      "ethereum_address": {"address":"0x0202020202020202020202020202020202020202"}
     },
     {
       "power": "1073741823",
-      "ethereum_address": "0x0303030303030303030303030303030303030303"
+      "ethereum_address": {"address":"0x0303030303030303030303030303030303030303"}
     },
     {
       "power": "1073741823",
-      "ethereum_address": "0x0404040404040404040404040404040404040404"
+      "ethereum_address": {"address":"0x0404040404040404040404040404040404040404"}
     }
   ]
 },
@@ -247,19 +247,19 @@ func TestLastValsetRequests(t *testing.T) {
   "nonce": "3",
   "height": "102",
   "reward_amount": "0",
-  "reward_token": "0x0000000000000000000000000000000000000000",
+  "reward_token": {"address":"0x0000000000000000000000000000000000000000"},
   "members": [
     {
       "power": "1431655765",
-      "ethereum_address": "0x0101010101010101010101010101010101010101"
+      "ethereum_address": {"address":"0x0101010101010101010101010101010101010101"}
     },
     {
       "power": "1431655765",
-      "ethereum_address": "0x0202020202020202020202020202020202020202"
+      "ethereum_address": {"address":"0x0202020202020202020202020202020202020202"}
     },
     {
       "power": "1431655765",
-      "ethereum_address": "0x0303030303030303030303030303030303030303"
+      "ethereum_address": {"address":"0x0303030303030303030303030303030303030303"}
     }
   ]
 },
@@ -267,15 +267,15 @@ func TestLastValsetRequests(t *testing.T) {
   "nonce": "2",
   "height": "101",
   "reward_amount": "0",
-  "reward_token": "0x0000000000000000000000000000000000000000",
+  "reward_token": {"address":"0x0000000000000000000000000000000000000000"},
   "members": [
     {
       "power": "2147483647",
-      "ethereum_address": "0x0101010101010101010101010101010101010101"
+      "ethereum_address": {"address":"0x0101010101010101010101010101010101010101"}
     },
     {
       "power": "2147483647",
-      "ethereum_address": "0x0202020202020202020202020202020202020202"
+      "ethereum_address": {"address":"0x0202020202020202020202020202020202020202"}
     }
   ]
 }
@@ -304,7 +304,7 @@ func TestPendingValsetRequests(t *testing.T) {
 		for j := 0; j <= i; j++ {
 			// add an validator each block
 			valAddr := bytes.Repeat([]byte{byte(j)}, sdk.AddrLen)
-			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String())
+			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String()})
 			validators = append(validators, valAddr)
 		}
 		input.GravityKeeper.StakingKeeper = NewStakingKeeperMock(validators...)
@@ -322,132 +322,132 @@ func TestPendingValsetRequests(t *testing.T) {
                                     "members": [
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       },
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0202020202020202020202020202020202020202"
+                                        "ethereum_address": {"address": "0x0202020202020202020202020202020202020202"}
                                       },
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0303030303030303030303030303030303030303"
+                                        "ethereum_address": {"address": "0x0303030303030303030303030303030303030303"}
                                       },
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0404040404040404040404040404040404040404"
+                                        "ethereum_address": {"address": "0x0404040404040404040404040404040404040404"}
                                       },
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0505050505050505050505050505050505050505"
+                                        "ethereum_address": {"address": "0x0505050505050505050505050505050505050505"}
                                       },
                                       {
                                         "power": "715827882",
-                                        "ethereum_address": "0x0606060606060606060606060606060606060606"
+                                        "ethereum_address": {"address": "0x0606060606060606060606060606060606060606"}
                                       }
                                     ],
                                     "height": "105",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   },
                                   {
                                     "nonce": "5",
                                     "members": [
                                       {
                                         "power": "858993459",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       },
                                       {
                                         "power": "858993459",
-                                        "ethereum_address": "0x0202020202020202020202020202020202020202"
+                                        "ethereum_address": {"address": "0x0202020202020202020202020202020202020202"}
                                       },
                                       {
                                         "power": "858993459",
-                                        "ethereum_address": "0x0303030303030303030303030303030303030303"
+                                        "ethereum_address": {"address": "0x0303030303030303030303030303030303030303"}
                                       },
                                       {
                                         "power": "858993459",
-                                        "ethereum_address": "0x0404040404040404040404040404040404040404"
+                                        "ethereum_address": {"address": "0x0404040404040404040404040404040404040404"}
                                       },
                                       {
                                         "power": "858993459",
-                                        "ethereum_address": "0x0505050505050505050505050505050505050505"
+                                        "ethereum_address": {"address": "0x0505050505050505050505050505050505050505"}
                                       }
                                     ],
                                     "height": "104",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   },
                                   {
                                     "nonce": "4",
                                     "members": [
                                       {
                                         "power": "1073741823",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       },
                                       {
                                         "power": "1073741823",
-                                        "ethereum_address": "0x0202020202020202020202020202020202020202"
+                                        "ethereum_address": {"address": "0x0202020202020202020202020202020202020202"}
                                       },
                                       {
                                         "power": "1073741823",
-                                        "ethereum_address": "0x0303030303030303030303030303030303030303"
+                                        "ethereum_address": {"address": "0x0303030303030303030303030303030303030303"}
                                       },
                                       {
                                         "power": "1073741823",
-                                        "ethereum_address": "0x0404040404040404040404040404040404040404"
+                                        "ethereum_address": {"address": "0x0404040404040404040404040404040404040404"}
                                       }
                                     ],
                                     "height": "103",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   },
                                   {
                                     "nonce": "3",
                                     "members": [
                                       {
                                         "power": "1431655765",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       },
                                       {
                                         "power": "1431655765",
-                                        "ethereum_address": "0x0202020202020202020202020202020202020202"
+                                        "ethereum_address": {"address": "0x0202020202020202020202020202020202020202"}
                                       },
                                       {
                                         "power": "1431655765",
-                                        "ethereum_address": "0x0303030303030303030303030303030303030303"
+                                        "ethereum_address": {"address": "0x0303030303030303030303030303030303030303"}
                                       }
                                     ],
                                     "height": "102",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   },
                                   {
                                     "nonce": "2",
                                     "members": [
                                       {
                                         "power": "2147483647",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       },
                                       {
                                         "power": "2147483647",
-                                        "ethereum_address": "0x0202020202020202020202020202020202020202"
+                                        "ethereum_address": {"address": "0x0202020202020202020202020202020202020202"}
                                       }
                                     ],
                                     "height": "101",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   },
                                   {
                                     "nonce": "1",
                                     "members": [
                                       {
                                         "power": "4294967295",
-                                        "ethereum_address": "0x0101010101010101010101010101010101010101"
+                                        "ethereum_address": {"address": "0x0101010101010101010101010101010101010101"}
                                       }
                                     ],
                                     "height": "100",
 									"reward_amount": "0",
-                                    "reward_token": "0x0000000000000000000000000000000000000000"
+                                    "reward_token": {"address": "0x0000000000000000000000000000000000000000"}
                                   }
                                 ]`),
 		},
@@ -476,7 +476,7 @@ func TestLastPendingBatchRequest(t *testing.T) {
 			// add an validator each block
 			// TODO: replace with real SDK addresses
 			valAddr := bytes.Repeat([]byte{byte(j)}, sdk.AddrLen)
-			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String())
+			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String()})
 			validators = append(validators, valAddr)
 		}
 		input.GravityKeeper.StakingKeeper = NewStakingKeeperMock(validators...)
@@ -498,31 +498,31 @@ func TestLastPendingBatchRequest(t *testing.T) {
 		{
 		"id": "2",
 		"sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
-		"dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+		"dest_address": {"address":"0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 		"erc20_token": {
 			"amount": "101",
-			"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+			"contract": {"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		},
 		"erc20_fee": {
 			"amount": "3",
-			"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+			"contract": {"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		}
 		},
 		{
 		"id": "3",
 		"sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
-		"dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+		"dest_address": {"address":"0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 		"erc20_token": {
 			"amount": "102",
-			"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+			"contract": {"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		},
 		"erc20_fee": {
 			"amount": "2",
-			"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+			"contract": {"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		}
 		}
 	],
-	"token_contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+	"token_contract": {"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 	}
 }
 			`,
@@ -542,8 +542,8 @@ func TestLastPendingBatchRequest(t *testing.T) {
 func createTestBatch(t *testing.T, input TestInput) {
 	var (
 		mySender            = bytes.Repeat([]byte{1}, sdk.AddrLen)
-		myReceiver          = "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"
-		myTokenContractAddr = "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		myReceiver          = &types.EthAddress{"0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"}
+		myTokenContractAddr = types.EthAddress{"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		now                 = time.Now().UTC()
 	)
 	// mint some voucher first
@@ -572,7 +572,7 @@ func createTestBatch(t *testing.T, input TestInput) {
 	input.Context = input.Context.WithBlockTime(now)
 
 	// tx batch size is 2, so that some of them stay behind
-	_, err = input.GravityKeeper.BuildOutgoingTXBatch(input.Context, myTokenContractAddr, 2)
+	_, err = input.GravityKeeper.BuildOutgoingTXBatch(input.Context, &myTokenContractAddr, 2)
 	require.NoError(t, err)
 	// Should have 2 and 3 from above
 	// 1 and 4 should be unbatched
@@ -584,14 +584,14 @@ func TestQueryAllBatchConfirms(t *testing.T) {
 	ctx := input.Context
 
 	var (
-		tokenContract    = "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		tokenContract, _ = types.NewOptionalEthAddress("0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B")
 		validatorAddr, _ = sdk.AccAddressFromBech32("cosmos1mgamdcs9dah0vn0gqupl05up7pedg2mvupe6hh")
 	)
 
 	input.GravityKeeper.SetBatchConfirm(ctx, &types.MsgConfirmBatch{
 		Nonce:         1,
-		TokenContract: tokenContract,
-		EthSigner:     "0xf35e2cc8e6523d683ed44870f5b7cc785051a77d",
+		TokenContract: tokenContract.Optional,
+		EthSigner:     &types.EthAddress{"0xf35e2cc8e6523d683ed44870f5b7cc785051a77d"},
 		Orchestrator:  validatorAddr.String(),
 		Signature:     "signature",
 	})
@@ -599,7 +599,7 @@ func TestQueryAllBatchConfirms(t *testing.T) {
 	batchConfirms, err := queryAllBatchConfirms(ctx, "1", tokenContract, input.GravityKeeper)
 	require.NoError(t, err)
 
-	expectedJSON := []byte(`[{"eth_signer":"0xf35e2cc8e6523d683ed44870f5b7cc785051a77d", "nonce":"1", "signature":"signature", "token_contract":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B", "orchestrator":"cosmos1mgamdcs9dah0vn0gqupl05up7pedg2mvupe6hh"}]`)
+	expectedJSON := []byte(`[{"eth_signer":{"address":"0xf35e2cc8e6523d683ed44870f5b7cc785051a77d"}, "nonce":"1", "signature":"signature", "token_contract":{"address":"0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}, "orchestrator":"cosmos1mgamdcs9dah0vn0gqupl05up7pedg2mvupe6hh"}]`)
 
 	assert.JSONEq(t, string(expectedJSON), string(batchConfirms), "json is equal")
 }
@@ -610,9 +610,9 @@ func TestQueryLogicCalls(t *testing.T) {
 	ctx := input.Context
 	k := input.GravityKeeper
 	var (
-		logicContract            = "0x510ab76899430424d209a6c9a5b9951fb8a6f47d"
+		logicContract            = &types.EthAddress{"0x510ab76899430424d209a6c9a5b9951fb8a6f47d"}
 		payload                  = []byte("fake bytes")
-		tokenContract            = "0x7580bfe88dd3d07947908fae12d95872a260f2d8"
+		tokenContract            = &types.EthAddress{"0x7580bfe88dd3d07947908fae12d95872a260f2d8"}
 		invalidationId           = []byte("GravityTesting")
 		invalidationNonce uint64 = 1
 	)
@@ -625,7 +625,7 @@ func TestQueryLogicCalls(t *testing.T) {
 			// add an validator each block
 			// TODO: replace with real SDK addresses
 			valAddr := bytes.Repeat([]byte{byte(j)}, sdk.AddrLen)
-			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String())
+			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String()})
 			validators = append(validators, valAddr)
 		}
 		input.GravityKeeper.StakingKeeper = NewStakingKeeperMock(validators...)
@@ -667,9 +667,9 @@ func TestQueryLogicCallsConfirms(t *testing.T) {
 	ctx := input.Context
 	k := input.GravityKeeper
 	var (
-		logicContract            = "0x510ab76899430424d209a6c9a5b9951fb8a6f47d"
+		logicContract            = &types.EthAddress{"0x510ab76899430424d209a6c9a5b9951fb8a6f47d"}
 		payload                  = []byte("fake bytes")
-		tokenContract            = "0x7580bfe88dd3d07947908fae12d95872a260f2d8"
+		tokenContract            = &types.EthAddress{"0x7580bfe88dd3d07947908fae12d95872a260f2d8"}
 		invalidationId           = []byte("GravityTesting")
 		invalidationNonce uint64 = 1
 	)
@@ -682,7 +682,7 @@ func TestQueryLogicCallsConfirms(t *testing.T) {
 			// add an validator each block
 			// TODO: replace with real SDK addresses
 			valAddr := bytes.Repeat([]byte{byte(j)}, sdk.AddrLen)
-			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String())
+			input.GravityKeeper.SetEthAddressForValidator(ctx, valAddr, &types.EthAddress{gethcommon.BytesToAddress(bytes.Repeat([]byte{byte(j + 1)}, 20)).String()})
 			validators = append(validators, valAddr)
 		}
 		input.GravityKeeper.StakingKeeper = NewStakingKeeperMock(validators...)
@@ -709,7 +709,7 @@ func TestQueryLogicCallsConfirms(t *testing.T) {
 	confirm := types.MsgConfirmLogicCall{
 		InvalidationId:    hex.EncodeToString(invalidationId),
 		InvalidationNonce: 1,
-		EthSigner:         "test",
+		EthSigner:         &types.EthAddress{"test"},
 		Orchestrator:      valAddr.String(),
 		Signature:         "test",
 	}
@@ -728,7 +728,7 @@ func TestQueryBatch(t *testing.T) {
 	ctx := input.Context
 
 	var (
-		tokenContract = "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		tokenContract, _ = types.NewOptionalEthAddress("0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B")
 	)
 
 	createTestBatch(t, input)
@@ -743,12 +743,12 @@ func TestQueryBatch(t *testing.T) {
 			{
 			  "erc20_fee": {
 				"amount": "3",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "101",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "2"
@@ -756,12 +756,12 @@ func TestQueryBatch(t *testing.T) {
 			{
 			  "erc20_fee": {
 				"amount": "2",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "102",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "3"
@@ -769,7 +769,7 @@ func TestQueryBatch(t *testing.T) {
 		  ],
 		  "batch_nonce": "1",
 		  "block": "1234567",
-		  "token_contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		  "token_contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		}
 	  }
 	  `)
@@ -795,12 +795,12 @@ func TestLastBatchesRequest(t *testing.T) {
 			{
 			  "erc20_fee": {
 				"amount": "3",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "101",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "6"
@@ -808,12 +808,12 @@ func TestLastBatchesRequest(t *testing.T) {
 			{
 			  "erc20_fee": {
 				"amount": "2",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "102",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "7"
@@ -821,19 +821,19 @@ func TestLastBatchesRequest(t *testing.T) {
 		  ],
 		  "batch_nonce": "2",
 		  "block": "1234567",
-		  "token_contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		  "token_contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		},
 		{
 		  "transactions": [
 			{
 			  "erc20_fee": {
 				"amount": "3",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "101",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "2"
@@ -841,12 +841,12 @@ func TestLastBatchesRequest(t *testing.T) {
 			{
 			  "erc20_fee": {
 				"amount": "2",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
-			  "dest_address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934",
+			  "dest_address": {"address": "0x320915BD0F1bad11cBf06e85D5199DBcAC4E9934"},
 			  "erc20_token": {
 				"amount": "102",
-				"contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+				"contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 			  },
 			  "sender": "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du",
 			  "id": "3"
@@ -854,7 +854,7 @@ func TestLastBatchesRequest(t *testing.T) {
 		  ],
 		  "batch_nonce": "1",
 		  "block": "1234567",
-		  "token_contract": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"
+		  "token_contract": {"address": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}
 		}
 	  ]
 	  `)
@@ -866,7 +866,7 @@ func TestLastBatchesRequest(t *testing.T) {
 // tests setting and querying eth address and orchestrator addresses
 func TestQueryCurrentValset(t *testing.T) {
 	var (
-		ethAddress                = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
+		ethAddress                = &types.EthAddress{"0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"}
 		valAddress sdk.ValAddress = bytes.Repeat([]byte{0x2}, sdk.AddrLen)
 	)
 	input := CreateTestEnv(t)
@@ -877,15 +877,16 @@ func TestQueryCurrentValset(t *testing.T) {
 	currentValset := input.GravityKeeper.GetCurrentValset(ctx)
 
 	bridgeVal := types.BridgeValidator{EthereumAddress: ethAddress, Power: 4294967295}
-	expectedValset := types.NewValset(1, 1234567, []*types.BridgeValidator{&bridgeVal}, sdk.NewIntFromUint64(0), "0x0000000000000000000000000000000000000000")
+	expectedValset := types.NewValset(1, 1234567, []*types.BridgeValidator{&bridgeVal}, sdk.NewIntFromUint64(0), types.ZeroAddress())
 	assert.Equal(t, expectedValset, currentValset)
 }
 
 //nolint: exhaustivestruct
 func TestQueryERC20ToDenom(t *testing.T) {
 	var (
-		erc20 = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
-		denom = "uatom"
+		erc20            = &types.EthAddress{"0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"}
+		optionalErc20, _ = types.NewOptionalEthAddress(erc20.Address)
+		denom            = "uatom"
 	)
 	response := types.QueryERC20ToDenomResponse{
 		Denom:            denom,
@@ -895,7 +896,7 @@ func TestQueryERC20ToDenom(t *testing.T) {
 	ctx := input.Context
 	input.GravityKeeper.setCosmosOriginatedDenomToERC20(ctx, denom, erc20)
 
-	queriedDenom, err := queryERC20ToDenom(ctx, erc20, input.GravityKeeper)
+	queriedDenom, err := queryERC20ToDenom(ctx, optionalErc20, input.GravityKeeper)
 	require.NoError(t, err)
 	correctBytes, err := codec.MarshalJSONIndent(types.ModuleCdc, response)
 	require.NoError(t, err)
@@ -906,7 +907,7 @@ func TestQueryERC20ToDenom(t *testing.T) {
 //nolint: exhaustivestruct
 func TestQueryDenomToERC20(t *testing.T) {
 	var (
-		erc20 = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
+		erc20 = &types.EthAddress{"0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"}
 		denom = "uatom"
 	)
 	response := types.QueryDenomToERC20Response{
@@ -933,8 +934,8 @@ func TestQueryPendingSendToEth(t *testing.T) {
 	var (
 		now                 = time.Now().UTC()
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5" // Pickle
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"} // Pickle
 		allVouchers         = sdk.NewCoins(
 			types.NewERC20Token(99999, myTokenContractAddr).GravityCoin(),
 		)
@@ -967,7 +968,7 @@ func TestQueryPendingSendToEth(t *testing.T) {
 
 	// tx batch size is 2, so that some of them stay behind
 	// Should contain 2 and 3 from above
-	_, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, myTokenContractAddr, 2)
+	_, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, &myTokenContractAddr, 2)
 	require.NoError(t, err)
 
 	// Should receive 1 and 4 unbatched, 2 and 3 batched in response
@@ -978,26 +979,26 @@ func TestQueryPendingSendToEth(t *testing.T) {
     {
       "id": "2",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
-      "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
+      "dest_address": {"address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"},
       "erc20_token": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "101"
       },
       "erc20_fee": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "3"
       }
     },
     {
       "id": "3",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
-      "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
+      "dest_address": {"address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"},
       "erc20_token": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "102"
       },
       "erc20_fee": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "2"
       }
     }
@@ -1006,26 +1007,26 @@ func TestQueryPendingSendToEth(t *testing.T) {
     {
       "id": "1",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
-      "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
+      "dest_address": {"address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"},
       "erc20_token": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "100"
       },
       "erc20_fee": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "2"
       }
     },
     {
       "id": "4",
       "sender": "cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn",
-      "dest_address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7",
+      "dest_address": {"address": "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"},
       "erc20_token": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "103"
       },
       "erc20_fee": {
-        "contract": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5",
+        "contract": {"address": "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"},
         "amount": "1"
       }
     }

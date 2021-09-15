@@ -112,13 +112,13 @@ func (k Keeper) SetEthAddressForValidator(ctx sdk.Context, validator sdk.ValAddr
 // GetEthAddressByValidator returns the eth address for a given gravity validator
 func (k Keeper) GetEthAddressByValidator(ctx sdk.Context, validator sdk.ValAddress) (ethAddress *types.OptionalEthAddress, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	ethAddr := store.Get(types.GetEthAddressByValidatorKey(validator))
-	if ethAddr == nil {
+	bz := store.Get(types.GetEthAddressByValidatorKey(validator))
+	if bz == nil {
 		return types.NilEthAddress(), false
 	} else {
-		ethAddr, err := types.NewOptionalEthAddress(string(ethAddr))
+		ethAddr, err := types.NewOptionalEthAddress(string(bz))
 		if err != nil {
-			panic(fmt.Errorf("discovered invalid Eth Address %s stored for validator %v", ethAddr, validator))
+			panic(fmt.Errorf("discovered invalid Eth Address %s with err %v stored for validator %v", ethAddr, err, validator))
 		}
 		return ethAddr, true
 	}

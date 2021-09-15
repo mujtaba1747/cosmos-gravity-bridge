@@ -74,7 +74,7 @@ func TestCurrentValsetNormalization(t *testing.T) {
 					Operator: cAddr,
 					Power:    int64(v),
 				}
-				input.GravityKeeper.SetEthAddressForValidator(ctx, cAddr, "0xf71402f886b45c134743F4c00750823Bbf5Fd045")
+				input.GravityKeeper.SetEthAddressForValidator(ctx, cAddr, &types.EthAddress{"0xf71402f886b45c134743F4c00750823Bbf5Fd045"})
 			}
 			input.GravityKeeper.StakingKeeper = NewStakingKeeperWeightedMock(operators...)
 			r := input.GravityKeeper.GetCurrentValset(ctx)
@@ -97,7 +97,7 @@ func TestAttestationIterator(t *testing.T) {
 		EventNonce:     1,
 		TokenContract:  TokenContractAddrs[0],
 		Amount:         sdk.NewInt(100),
-		EthereumSender: EthAddrs[0].String(),
+		EthereumSender: EthAddrs[0],
 		CosmosReceiver: AccAddrs[0].String(),
 		Orchestrator:   AccAddrs[0].String(),
 	}
@@ -109,7 +109,7 @@ func TestAttestationIterator(t *testing.T) {
 		EventNonce:     2,
 		TokenContract:  TokenContractAddrs[0],
 		Amount:         sdk.NewInt(100),
-		EthereumSender: EthAddrs[0].String(),
+		EthereumSender: EthAddrs[0],
 		CosmosReceiver: AccAddrs[0].String(),
 		Orchestrator:   AccAddrs[0].String(),
 	}
@@ -131,9 +131,9 @@ func TestDelegateKeys(t *testing.T) {
 	ctx := input.Context
 	k := input.GravityKeeper
 	var (
-		ethAddrs = []string{"0x3146D2d6Eed46Afa423969f5dDC3152DfC359b09",
-			"0x610277F0208D342C576b991daFdCb36E36515e76", "0x835973768750b3ED2D5c3EF5AdcD5eDb44d12aD4",
-			"0xb2A7F3E84F8FdcA1da46c810AEa110dd96BAE6bF"}
+		ethAddrs = []types.EthAddress{types.EthAddress{"0x3146D2d6Eed46Afa423969f5dDC3152DfC359b09"},
+			types.EthAddress{"0x610277F0208D342C576b991daFdCb36E36515e76"}, types.EthAddress{"0x835973768750b3ED2D5c3EF5AdcD5eDb44d12aD4"},
+			types.EthAddress{"0xb2A7F3E84F8FdcA1da46c810AEa110dd96BAE6bF"}}
 
 		valAddrs = []string{"cosmosvaloper1jpz0ahls2chajf78nkqczdwwuqcu97w6z3plt4",
 			"cosmosvaloper15n79nty2fj37ant3p2gj4wju4ls6eu6tjwmdt0", "cosmosvaloper16dnkc6ac6ruuyr6l372fc3p77jgjpet6fka0cq",
@@ -152,7 +152,7 @@ func TestDelegateKeys(t *testing.T) {
 		// set the orchestrator address
 		k.SetOrchestratorValidator(ctx, val, orch)
 		// set the ethereum address
-		k.SetEthAddressForValidator(ctx, val, ethAddrs[i])
+		k.SetEthAddressForValidator(ctx, val, &ethAddrs[i])
 	}
 
 	addresses := k.GetDelegateKeys(ctx)
@@ -160,7 +160,7 @@ func TestDelegateKeys(t *testing.T) {
 		res := addresses[i]
 		assert.Equal(t, valAddrs[i], res.Validator)
 		assert.Equal(t, orchAddrs[i], res.Orchestrator)
-		assert.Equal(t, ethAddrs[i], res.EthAddress)
+		assert.Equal(t, ethAddrs[i].Address, res.EthAddress.Address)
 	}
 
 }

@@ -270,7 +270,7 @@ func (k Keeper) ERC20ToDenom(
 	ctx := sdk.UnwrapSDKContext(c)
 	ethAddr, err := types.NewEthAddress(req.Erc20)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "invalid erc20 in request", req.Erc20)
+		return nil, sdkerrors.Wrapf(err, "invalid erc20 in request: %v", req.Erc20)
 	}
 	cosmosOriginated, name := k.ERC20ToDenomLookup(ctx, ethAddr)
 	var ret types.QueryERC20ToDenomResponse
@@ -349,7 +349,7 @@ func (k Keeper) GetDelegateKeyByEth(
 		return nil, sdkerrors.Wrap(err, "invalid eth address")
 	}
 	for _, key := range keys {
-		if req.EthAddress == key.EthAddress {
+		if req.EthAddress.Address == key.EthAddress.Address {
 			return &types.QueryDelegateKeysByEthAddressResponse{
 				ValidatorAddress:    key.Validator,
 				OrchestratorAddress: key.Orchestrator,

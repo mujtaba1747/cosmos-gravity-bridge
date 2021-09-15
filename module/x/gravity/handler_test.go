@@ -26,7 +26,7 @@ func TestHandleMsgSendToEth(t *testing.T) {
 		startingCoins         sdk.Coins = sdk.Coins{sdk.NewCoin(denom, startingCoinAmount)}
 		sendingCoin           sdk.Coin  = sdk.NewCoin(denom, sendAmount)
 		feeCoin               sdk.Coin  = sdk.NewCoin(denom, feeAmount)
-		ethDestination                  = "0x3c9289da00b02dC623d0D8D907619890301D26d4"
+		ethDestination                  = &types.EthAddress{"0x3c9289da00b02dC623d0D8D907619890301D26d4"}
 	)
 
 	// we start by depositing some funds into the users balance to send
@@ -83,8 +83,8 @@ func TestMsgSendToCosmosClaimSingleValidator(t *testing.T) {
 		myCosmosAddr, _                   = sdk.AccAddressFromBech32("cosmos16ahjkfqxpp6lvfy9fpfnfjg39xr96qett0alj5")
 		myValAddr                         = sdk.ValAddress(myOrchestratorAddr) // revisit when proper mapping is impl in keeper
 		myNonce                           = uint64(1)
-		anyETHAddr                        = "0xf9613b532673Cc223aBa451dFA8539B87e1F666D"
-		tokenETHAddr                      = "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"
+		anyETHAddr                        = &types.EthAddress{"0xf9613b532673Cc223aBa451dFA8539B87e1F666D"}
+		tokenETHAddr                      = &types.EthAddress{"0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"}
 		myBlockTime                       = time.Date(2020, 9, 14, 15, 20, 10, 0, time.UTC)
 		amountA, _                        = sdk.NewIntFromString("50000000000000000000")  // 50 ETH
 		amountB, _                        = sdk.NewIntFromString("100000000000000000000") // 100 ETH
@@ -183,8 +183,8 @@ func TestMsgSendToCosmosClaimsMultiValidator(t *testing.T) {
 		valAddr2             = sdk.ValAddress(orchestratorAddr2) // revisit when proper mapping is impl in keeper
 		valAddr3             = sdk.ValAddress(orchestratorAddr3) // revisit when proper mapping is impl in keeper
 		myNonce              = uint64(1)
-		anyETHAddr           = "0xf9613b532673Cc223aBa451dFA8539B87e1F666D"
-		tokenETHAddr         = "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"
+		anyETHAddr           = &types.EthAddress{"0xf9613b532673Cc223aBa451dFA8539B87e1F666D"}
+		tokenETHAddr         = &types.EthAddress{"0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"}
 		myBlockTime          = time.Date(2020, 9, 14, 15, 20, 10, 0, time.UTC)
 	)
 	input := keeper.CreateTestEnv(t)
@@ -267,9 +267,9 @@ func TestMsgSendToCosmosClaimsMultiValidator(t *testing.T) {
 //nolint: exhaustivestruct
 func TestMsgSetOrchestratorAddresses(t *testing.T) {
 	var (
-		ethAddress                    = "0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"
+		ethAddress                    = &types.EthAddress{"0xb462864E395d88d6bc7C5dd5F3F5eb4cc2599255"}
 		cosmosAddress  sdk.AccAddress = bytes.Repeat([]byte{0x1}, sdk.AddrLen)
-		ethAddress2                   = "0x26126048c706fB45a5a6De8432F428e794d0b952"
+		ethAddress2                   = &types.EthAddress{"0x26126048c706fB45a5a6De8432F428e794d0b952"}
 		cosmosAddress2 sdk.AccAddress = bytes.Repeat([]byte{0x2}, sdk.AddrLen)
 		valAddress     sdk.ValAddress = bytes.Repeat([]byte{0x2}, sdk.AddrLen)
 		blockTime                     = time.Date(2020, 9, 14, 15, 20, 10, 0, time.UTC)
@@ -296,7 +296,7 @@ func TestMsgSetOrchestratorAddresses(t *testing.T) {
 	// individual lookups
 	ethLookup, found := k.GetEthAddressByValidator(ctx, valAddress)
 	assert.True(t, found)
-	assert.Equal(t, ethLookup, ethAddress)
+	assert.Equal(t, ethLookup.Optional, ethAddress)
 
 	valLookup, found := k.GetOrchestratorValidator(ctx, cosmosAddress)
 	assert.True(t, found)

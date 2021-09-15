@@ -20,8 +20,8 @@ func TestSubmitBadSignatureEvidenceBatchExists(t *testing.T) {
 	var (
 		now                 = time.Now().UTC()
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5" // Pickle
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"} // Pickle
 		allVouchers         = sdk.NewCoins(
 			types.NewERC20Token(99999, myTokenContractAddr).GravityCoin(),
 		)
@@ -46,7 +46,7 @@ func TestSubmitBadSignatureEvidenceBatchExists(t *testing.T) {
 	// when
 	ctx = ctx.WithBlockTime(now)
 
-	goodBatch, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, myTokenContractAddr, 2)
+	goodBatch, err := input.GravityKeeper.BuildOutgoingTXBatch(ctx, &myTokenContractAddr, 2)
 	require.NoError(t, err)
 
 	any, _ := codectypes.NewAnyWithValue(goodBatch)
@@ -84,7 +84,8 @@ func TestSubmitBadSignatureEvidenceLogicCallExists(t *testing.T) {
 	ctx := input.Context
 
 	logicCall := types.OutgoingLogicCall{
-		Timeout: 420,
+		LogicContractAddress: types.ZeroAddress(),
+		Timeout:              420,
 	}
 
 	input.GravityKeeper.SetOutgoingLogicCall(ctx, &logicCall)
@@ -105,7 +106,8 @@ func TestSubmitBadSignatureEvidenceSlash(t *testing.T) {
 	input, ctx := SetupFiveValChain(t)
 
 	batch := types.OutgoingTxBatch{
-		BatchTimeout: 420,
+		TokenContract: types.ZeroAddress(),
+		BatchTimeout:  420,
 	}
 
 	checkpoint := batch.GetCheckpoint(input.GravityKeeper.GetGravityID(ctx))
@@ -116,9 +118,9 @@ func TestSubmitBadSignatureEvidenceSlash(t *testing.T) {
 	privKey, err := crypto.GenerateKey()
 	require.NoError(t, err)
 
-	ethAddress := crypto.PubkeyToAddress(privKey.PublicKey)
+	ethAddress := &types.EthAddress{crypto.PubkeyToAddress(privKey.PublicKey).String()}
 
-	input.GravityKeeper.SetEthAddressForValidator(ctx, ValAddrs[0], ethAddress.String())
+	input.GravityKeeper.SetEthAddressForValidator(ctx, ValAddrs[0], ethAddress)
 
 	ethSignature, err := types.NewEthereumSignature(checkpoint, privKey)
 	require.NoError(t, err)

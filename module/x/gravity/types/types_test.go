@@ -44,7 +44,7 @@ func TestValsetConfirmHash(t *testing.T) {
 func TestValsetCheckpointGold1(t *testing.T) {
 	zeroAddr, err := NewEthAddress("0x0000000000000000000000000000000000000000")
 	require.Nil(t, err)
-	addr, err := NewEthAddress("0x0000000000000000000000000000000000000000")
+	addr, err := NewEthAddress("0xc783df8a850f42e7F7e57013759C285caa701eB6")
 	require.Nil(t, err)
 	src := NewValset(0, 0, BridgeValidators{{
 		Power:           6667,

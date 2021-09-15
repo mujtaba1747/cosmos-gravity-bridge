@@ -41,8 +41,8 @@ message EthAddress {
 }
 
 message OptionalEthAddress {
-  bool IsNil = 1;
-	EthAddress Optional = 2;
+  bool is_nil = 1;
+	EthAddress optional = 2;
 }
 
 // This records the relationship between an ERC20 token and the denom

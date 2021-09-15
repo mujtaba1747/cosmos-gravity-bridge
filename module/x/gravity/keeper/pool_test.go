@@ -18,8 +18,8 @@ func TestAddToOutgoingPool(t *testing.T) {
 	ctx := input.Context
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 	// mint some voucher first
 	allVouchers := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr).GravityCoin()}
@@ -46,7 +46,7 @@ func TestAddToOutgoingPool(t *testing.T) {
 
 	}
 	// then
-	got := input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, myTokenContractAddr)
+	got := input.GravityKeeper.GetUnbatchedTransactionsByContract(ctx, &myTokenContractAddr)
 
 	exp := []*types.OutgoingTransferTx{
 		{
@@ -87,8 +87,8 @@ func TestAddToOutgoingPoolEdgeCases(t *testing.T) {
 	ctx := input.Context
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 
 	amount := types.NewERC20Token(uint64(100), myTokenContractAddr).GravityCoin()
@@ -131,14 +131,14 @@ func TestAddToOutgoingPoolEdgeCases(t *testing.T) {
 	//////// Zero inputs ////////
 	mtCtx := new(sdk.Context)
 	mtSend := new(sdk.AccAddress)
-	mtRecieve := new(string)
+	mtRecieve := new(*types.EthAddress)
 	mtCoin := new(sdk.Coin)
 	r, err = input.GravityKeeper.AddToOutgoingPool(*mtCtx, *mtSend, *mtRecieve, *mtCoin, *mtCoin)
 	require.Error(t, err)
 	require.Zero(t, r)
 
 	//////// Inconsistent Entry ////////
-	badFeeContractAddr := "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"
+	badFeeContractAddr := types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"}
 	badFee = types.NewERC20Token(100, badFeeContractAddr).GravityCoin()
 	r, err = input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, badFee)
 	require.Error(t, err)
@@ -152,8 +152,8 @@ func TestTotalBatchFeeInPool(t *testing.T) {
 	// token1
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 	// mint some voucher first
 	allVouchers := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr).GravityCoin()}
@@ -176,7 +176,7 @@ func TestTotalBatchFeeInPool(t *testing.T) {
 
 	// token 2 - Only top 100
 	var (
-		myToken2ContractAddr = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
+		myToken2ContractAddr = types.EthAddress{"0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"}
 	)
 	// mint some voucher first
 	allVouchers = sdk.Coins{types.NewERC20Token(18446744073709551615, myToken2ContractAddr).GravityCoin()}
@@ -218,10 +218,10 @@ func TestGetBatchFeeByTokenType(t *testing.T) {
 		mySender1, _                        = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
 		mySender2            sdk.AccAddress = []byte("cosmos1ahx7f8wyertus")
 		mySender3            sdk.AccAddress = []byte("cosmos1ahx7f8wyertut")
-		myReceiver                          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr1                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
-		myTokenContractAddr2                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"
-		myTokenContractAddr3                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca7"
+		myReceiver                          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr1                = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
+		myTokenContractAddr2                = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"}
+		myTokenContractAddr3                = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca7"}
 	)
 	// mint some vouchers first
 	allVouchers1 := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr1).GravityCoin()}
@@ -281,14 +281,14 @@ func TestGetBatchFeeByTokenType(t *testing.T) {
 		t.Logf("___ response: %d", r)
 	}
 
-	batchFee1 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, myTokenContractAddr1, 100)
-	require.Equal(t, batchFee1.Token, myTokenContractAddr1)
+	batchFee1 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, &myTokenContractAddr1, 100)
+	require.Equal(t, batchFee1.Token.Address, myTokenContractAddr1.Address)
 	require.Equal(t, batchFee1.TotalFees.Uint64(), totalFee1, fmt.Errorf("expected total fees %d but got %d", batchFee1.TotalFees.Uint64(), totalFee1))
-	batchFee2 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, myTokenContractAddr2, 100)
-	require.Equal(t, batchFee2.Token, myTokenContractAddr2)
+	batchFee2 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, &myTokenContractAddr2, 100)
+	require.Equal(t, batchFee2.Token.Address, myTokenContractAddr2.Address)
 	require.Equal(t, batchFee2.TotalFees.Uint64(), totalFee2, fmt.Errorf("expected total fees %d but got %d", batchFee2.TotalFees.Uint64(), totalFee2))
-	batchFee3 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, myTokenContractAddr3, 100)
-	require.Equal(t, batchFee3.Token, myTokenContractAddr3)
+	batchFee3 := input.GravityKeeper.GetBatchFeeByTokenType(ctx, &myTokenContractAddr3, 100)
+	require.Equal(t, batchFee3.Token.Address, myTokenContractAddr3.Address)
 	require.Equal(t, batchFee3.TotalFees.Uint64(), totalFee3, fmt.Errorf("expected total fees %d but got %d", batchFee3.TotalFees.Uint64(), totalFee3))
 
 }
@@ -298,9 +298,9 @@ func TestRemoveFromOutgoingPoolAndRefund(t *testing.T) {
 	ctx := input.Context
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
-		myTokenDenom        = "gravity" + myTokenContractAddr
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
+		myTokenDenom        = "gravity" + myTokenContractAddr.Address
 	)
 	// mint some voucher first
 	originalBal := uint64(99999)
@@ -339,10 +339,10 @@ func TestRemoveFromOutgoingPoolAndRefund(t *testing.T) {
 	require.Equal(t, currentBal, originalBal-feesAndAmounts)
 
 	// Check that removing a transaction refunds the costs and the tx no longer exists in the pool
-	checkRemovedTx(t, input, ctx, ids[2], fees[2], amounts[2], &feesAndAmounts, originalBal, mySender, myTokenContractAddr, myTokenDenom)
-	checkRemovedTx(t, input, ctx, ids[3], fees[3], amounts[3], &feesAndAmounts, originalBal, mySender, myTokenContractAddr, myTokenDenom)
-	checkRemovedTx(t, input, ctx, ids[1], fees[1], amounts[1], &feesAndAmounts, originalBal, mySender, myTokenContractAddr, myTokenDenom)
-	checkRemovedTx(t, input, ctx, ids[0], fees[0], amounts[0], &feesAndAmounts, originalBal, mySender, myTokenContractAddr, myTokenDenom)
+	checkRemovedTx(t, input, ctx, ids[2], fees[2], amounts[2], &feesAndAmounts, originalBal, mySender, myTokenContractAddr.Address, myTokenDenom)
+	checkRemovedTx(t, input, ctx, ids[3], fees[3], amounts[3], &feesAndAmounts, originalBal, mySender, myTokenContractAddr.Address, myTokenDenom)
+	checkRemovedTx(t, input, ctx, ids[1], fees[1], amounts[1], &feesAndAmounts, originalBal, mySender, myTokenContractAddr.Address, myTokenDenom)
+	checkRemovedTx(t, input, ctx, ids[0], fees[0], amounts[0], &feesAndAmounts, originalBal, mySender, myTokenContractAddr.Address, myTokenDenom)
 	require.Empty(t, input.GravityKeeper.GetUnbatchedTransactions(ctx))
 }
 
@@ -377,13 +377,13 @@ func TestRefundInconsistentTx(t *testing.T) {
 	ctx := input.Context
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 
 	//////// Refund an inconsistent tx ////////
 	amount := types.NewERC20Token(uint64(100), myTokenContractAddr)
-	badTokenContractAddr := "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6" // different last char
+	badTokenContractAddr := types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"} // different last char
 	badFee := types.NewERC20Token(2, badTokenContractAddr)
 
 	// This way should fail
@@ -426,8 +426,8 @@ func TestRefundTwice(t *testing.T) {
 	ctx := input.Context
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 
 	//////// Refund a tx twice ////////
@@ -475,13 +475,13 @@ func TestGetUnbatchedTransactions(t *testing.T) {
 	var (
 		mySender1, _                        = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
 		mySender2            sdk.AccAddress = []byte("cosmos1ahx7f8wyertus")
-		myReceiver                          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr1                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
-		myTokenContractAddr2                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"
+		myReceiver                          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr1                = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
+		myTokenContractAddr2                = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"}
 	)
 	// mint some vouchers first
-	allVouchers1 := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr1).GravityCoin()}
-	allVouchers2 := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr2).GravityCoin()}
+	allVouchers1 := sdk.Coins{types.NewERC20Token(99999, *myTokenContractAddr1).GravityCoin()}
+	allVouchers2 := sdk.Coins{types.NewERC20Token(99999, *myTokenContractAddr2).GravityCoin()}
 	err := input.BankKeeper.MintCoins(ctx, types.ModuleName, allVouchers1)
 	require.NoError(t, err)
 	err = input.BankKeeper.MintCoins(ctx, types.ModuleName, allVouchers2)
@@ -501,8 +501,8 @@ func TestGetUnbatchedTransactions(t *testing.T) {
 	amounts := []uint64{100, 101, 102, 103}
 	idToTxMap := make(map[uint64]*types.OutgoingTransferTx)
 	for i, v := range fees {
-		amount1 := types.NewERC20Token(amounts[i], myTokenContractAddr1)
-		fee1 := types.NewERC20Token(v, myTokenContractAddr1)
+		amount1 := types.NewERC20Token(amounts[i], *myTokenContractAddr1)
+		fee1 := types.NewERC20Token(v, *myTokenContractAddr1)
 		r, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender1, myReceiver, amount1.GravityCoin(), fee1.GravityCoin())
 		require.NoError(t, err)
 		ids1[i] = r
@@ -513,8 +513,8 @@ func TestGetUnbatchedTransactions(t *testing.T) {
 			Erc20Token:  amount1,
 			Erc20Fee:    fee1,
 		}
-		amount2 := types.NewERC20Token(amounts[i], myTokenContractAddr2)
-		fee2 := types.NewERC20Token(v, myTokenContractAddr2)
+		amount2 := types.NewERC20Token(amounts[i], *myTokenContractAddr2)
+		fee2 := types.NewERC20Token(v, *myTokenContractAddr2)
 		r, err = input.GravityKeeper.AddToOutgoingPool(ctx, mySender2, myReceiver, amount2.GravityCoin(), fee2.GravityCoin())
 		require.NoError(t, err)
 		ids2[i] = r
@@ -528,8 +528,8 @@ func TestGetUnbatchedTransactions(t *testing.T) {
 	}
 
 	// GetUnbatchedTxByFeeAndId
-	token1Fee := types.NewERC20Token(fees[0], myTokenContractAddr1)
-	token1Amount := types.NewERC20Token(amounts[0], myTokenContractAddr1)
+	token1Fee := types.NewERC20Token(fees[0], *myTokenContractAddr1)
+	token1Amount := types.NewERC20Token(amounts[0], *myTokenContractAddr1)
 	token1Id := ids1[0]
 	tx1, err1 := input.GravityKeeper.GetUnbatchedTxByFeeAndId(ctx, *token1Fee, token1Id)
 	require.NoError(t, err1)
@@ -542,8 +542,8 @@ func TestGetUnbatchedTransactions(t *testing.T) {
 	}
 	require.Equal(t, expTx1, *tx1)
 
-	token2Fee := types.NewERC20Token(fees[3], myTokenContractAddr2)
-	token2Amount := types.NewERC20Token(amounts[3], myTokenContractAddr2)
+	token2Fee := types.NewERC20Token(fees[3], *myTokenContractAddr2)
+	token2Amount := types.NewERC20Token(amounts[3], *myTokenContractAddr2)
 	token2Id := ids2[3]
 	tx2, err2 := input.GravityKeeper.GetUnbatchedTxByFeeAndId(ctx, *token2Fee, token2Id)
 	require.NoError(t, err2)
@@ -600,13 +600,13 @@ func TestIterateUnbatchedTransactions(t *testing.T) {
 	var (
 		mySender1, _                        = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
 		mySender2            sdk.AccAddress = []byte("cosmos1ahx7f8wyertus")
-		myReceiver                          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr1                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
-		myTokenContractAddr2                = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"
+		myReceiver                          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr1                = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
+		myTokenContractAddr2                = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca6"}
 	)
 	// mint some vouchers first
-	allVouchers1 := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr1).GravityCoin()}
-	allVouchers2 := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr2).GravityCoin()}
+	allVouchers1 := sdk.Coins{types.NewERC20Token(99999, *myTokenContractAddr1).GravityCoin()}
+	allVouchers2 := sdk.Coins{types.NewERC20Token(99999, *myTokenContractAddr2).GravityCoin()}
 	err := input.BankKeeper.MintCoins(ctx, types.ModuleName, allVouchers1)
 	require.NoError(t, err)
 	err = input.BankKeeper.MintCoins(ctx, types.ModuleName, allVouchers2)
@@ -626,8 +626,8 @@ func TestIterateUnbatchedTransactions(t *testing.T) {
 	amounts := []uint64{100, 101, 102, 103}
 	idToTxMap := make(map[uint64]*types.OutgoingTransferTx)
 	for i, v := range fees {
-		amount1 := types.NewERC20Token(amounts[i], myTokenContractAddr1)
-		fee1 := types.NewERC20Token(v, myTokenContractAddr1)
+		amount1 := types.NewERC20Token(amounts[i], *myTokenContractAddr1)
+		fee1 := types.NewERC20Token(v, *myTokenContractAddr1)
 		r, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender1, myReceiver, amount1.GravityCoin(), fee1.GravityCoin())
 		require.NoError(t, err)
 		ids1[i] = r
@@ -638,8 +638,8 @@ func TestIterateUnbatchedTransactions(t *testing.T) {
 			Erc20Token:  amount1,
 			Erc20Fee:    fee1,
 		}
-		amount2 := types.NewERC20Token(amounts[i], myTokenContractAddr2)
-		fee2 := types.NewERC20Token(v, myTokenContractAddr2)
+		amount2 := types.NewERC20Token(amounts[i], *myTokenContractAddr2)
+		fee2 := types.NewERC20Token(v, *myTokenContractAddr2)
 		r, err = input.GravityKeeper.AddToOutgoingPool(ctx, mySender2, myReceiver, amount2.GravityCoin(), fee2.GravityCoin())
 		require.NoError(t, err)
 		ids2[i] = r
@@ -700,11 +700,11 @@ func TestAddToOutgoingPoolExportGenesis(t *testing.T) {
 	k := input.GravityKeeper
 	var (
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"}
 	)
 	// mint some voucher first
-	allVouchers := sdk.Coins{types.NewERC20Token(99999, myTokenContractAddr).GravityCoin()}
+	allVouchers := sdk.Coins{types.NewERC20Token(99999, *myTokenContractAddr).GravityCoin()}
 	err := input.BankKeeper.MintCoins(ctx, types.ModuleName, allVouchers)
 	require.NoError(t, err)
 
@@ -717,8 +717,8 @@ func TestAddToOutgoingPoolExportGenesis(t *testing.T) {
 	foundTxsMap := make(map[uint64]bool)
 	// when
 	for i, v := range []uint64{2, 3, 2, 1} {
-		amount := types.NewERC20Token(uint64(i+100), myTokenContractAddr)
-		fee := types.NewERC20Token(v, myTokenContractAddr)
+		amount := types.NewERC20Token(uint64(i+100), *myTokenContractAddr)
+		fee := types.NewERC20Token(v, *myTokenContractAddr)
 		r, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount.GravityCoin(), fee.GravityCoin())
 		require.NoError(t, err)
 

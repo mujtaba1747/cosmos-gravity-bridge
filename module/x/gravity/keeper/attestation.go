@@ -128,11 +128,13 @@ func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, clai
 // emitObservedEvent emits an event with information about an attestation that has been applied to
 // consensus state.
 func (k Keeper) emitObservedEvent(ctx sdk.Context, att *types.Attestation, claim types.EthereumClaim) {
+	addr := k.GetBridgeContractAddress(ctx)
 	observationEvent := sdk.NewEvent(
 		types.EventTypeObservation,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyAttestationType, string(claim.GetType())),
-		sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
+
+		sdk.NewAttribute(types.AttributeKeyContract, addr.Optional.Address),
 		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
 		// todo: serialize with hex/ base64 ?
 		sdk.NewAttribute(types.AttributeKeyAttestationID,

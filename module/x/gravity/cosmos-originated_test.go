@@ -28,7 +28,7 @@ func TestCosmosOriginated(t *testing.T) {
 type testingVars struct {
 	myOrchestratorAddr sdk.AccAddress
 	myValAddr          sdk.ValAddress
-	erc20              string
+	erc20              *types.EthAddress
 	denom              string
 	input              keeper.TestInput
 	ctx                sdk.Context
@@ -44,7 +44,7 @@ func initializeTestingVars(t *testing.T) *testingVars {
 	tv.myOrchestratorAddr = make([]byte, sdk.AddrLen)
 	tv.myValAddr = sdk.ValAddress(tv.myOrchestratorAddr) // revisit when proper mapping is impl in keeper
 
-	tv.erc20 = "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"
+	tv.erc20 = &types.EthAddress{"0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"}
 	tv.denom = "uatom"
 
 	tv.input = keeper.CreateTestEnv(t)
@@ -101,7 +101,7 @@ func addDenomToERC20Relation(tv *testingVars) {
 	assert.True(tv.t, isCosmosOriginated)
 
 	assert.Equal(tv.t, tv.denom, gotDenom)
-	assert.Equal(tv.t, tv.erc20, gotERC20)
+	assert.Equal(tv.t, tv.erc20, gotERC20.Optional)
 }
 
 func lockCoinsInModule(tv *testingVars) {
@@ -114,7 +114,7 @@ func lockCoinsInModule(tv *testingVars) {
 		startingCoins      sdk.Coins = sdk.Coins{sdk.NewCoin(denom, startingCoinAmount)}
 		sendingCoin        sdk.Coin  = sdk.NewCoin(denom, sendAmount)
 		feeCoin            sdk.Coin  = sdk.NewCoin(denom, feeAmount)
-		ethDestination               = "0x3c9289da00b02dC623d0D8D907619890301D26d4"
+		ethDestination               = &types.EthAddress{"0x3c9289da00b02dC623d0D8D907619890301D26d4"}
 	)
 
 	// we start by depositing some funds into the users balance to send
@@ -151,7 +151,7 @@ func acceptDepositEvent(tv *testingVars) {
 		myOrchestratorAddr sdk.AccAddress = make([]byte, sdk.AddrLen)
 		myCosmosAddr, _                   = sdk.AccAddressFromBech32("cosmos16ahjkfqxpp6lvfy9fpfnfjg39xr96qett0alj5")
 		myNonce                           = uint64(2)
-		anyETHAddr                        = "0xf9613b532673Cc223aBa451dFA8539B87e1F666D"
+		anyETHAddr                        = &types.EthAddress{"0xf9613b532673Cc223aBa451dFA8539B87e1F666D"}
 	)
 
 	myErc20 := types.ERC20Token{

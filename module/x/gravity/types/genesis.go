@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -67,10 +66,11 @@ var (
 	ParamStoreValsetRewardAmount = []byte("ValsetReward")
 
 	// Ensure that params implements the proper interface
-	_ paramtypes.ParamSet = &Params{
+	optionalZeroAddr, _                     = NewOptionalEthAddress(ZeroAddressString)
+	_                   paramtypes.ParamSet = &Params{
 		GravityId:                    "",
 		ContractSourceHash:           "",
-		BridgeEthereumAddress:        NilEthAddress(),
+		BridgeEthereumAddress:        "",
 		BridgeChainId:                0,
 		SignedValsetsWindow:          0,
 		SignedBatchesWindow:          0,
@@ -123,7 +123,7 @@ func DefaultParams() *Params {
 	return &Params{
 		GravityId:                    "defaultgravityid",
 		ContractSourceHash:           "",
-		BridgeEthereumAddress:        NilEthAddress(),
+		BridgeEthereumAddress:        "",
 		BridgeChainId:                0,
 		SignedValsetsWindow:          10000,
 		SignedBatchesWindow:          10000,
@@ -199,7 +199,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{
 		GravityId:                    "",
 		ContractSourceHash:           "",
-		BridgeEthereumAddress:        NilEthAddress(),
+		BridgeEthereumAddress:        "",
 		BridgeChainId:                0,
 		SignedValsetsWindow:          0,
 		SignedBatchesWindow:          0,
@@ -312,11 +312,10 @@ func validateBridgeContractAddress(i interface{}) error {
 	}
 	// We need Params to have an optional unset contract address, so we use
 	// the OptionalEthAddress type to accomplish this
-	_, err := NewOptionalEthAddress(v)
-	if !strings.Contains(err.Error(), "empty") {
-		return err
-	}
-	return nil
+	val, _ := NewOptionalEthAddress(v)
+	err := val.ValidateBasic()
+
+	return err
 }
 
 func validateSignedValsetsWindow(i interface{}) error {

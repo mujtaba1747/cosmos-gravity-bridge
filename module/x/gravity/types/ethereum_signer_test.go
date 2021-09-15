@@ -10,55 +10,55 @@ import (
 
 func TestValsetConfirmSig(t *testing.T) {
 	const (
-		correctSig = "e108a7776de6b87183b0690484a74daef44aa6daf907e91abaf7bbfa426ae7706b12e0bd44ef7b0634710d99c2d81087a2f39e075158212343a3b2948ecf33d01c"
-		invalidSig = "fffff7776de6b87183b0690484a74daef44aa6daf907e91abaf7bbfa426ae7706b12e0bd44ef7b0634710d99c2d81087a2f39e075158212343a3b2948ecf33d01c"
-		ethAddress = "0xc783df8a850f42e7F7e57013759C285caa701eB6"
-		hash       = "88165860d955aee7dc3e83d9d1156a5864b708841965585d206dbef6e9e1a499"
+		correctSig    = "e108a7776de6b87183b0690484a74daef44aa6daf907e91abaf7bbfa426ae7706b12e0bd44ef7b0634710d99c2d81087a2f39e075158212343a3b2948ecf33d01c"
+		invalidSig    = "fffff7776de6b87183b0690484a74daef44aa6daf907e91abaf7bbfa426ae7706b12e0bd44ef7b0634710d99c2d81087a2f39e075158212343a3b2948ecf33d01c"
+		ethAddressStr = "0xc783df8a850f42e7F7e57013759C285caa701eB6"
+		hash          = "88165860d955aee7dc3e83d9d1156a5864b708841965585d206dbef6e9e1a499"
 	)
 
 	specs := map[string]struct {
 		srcHash      string
 		srcSignature string
-		srcETHAddr   string
+		srcETHAddr   EthAddress
 		expErr       bool
 	}{
 		"all good": {
 			srcHash:      hash,
 			srcSignature: correctSig,
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 		},
 		"invalid signature": {
 			srcHash:      hash,
 			srcSignature: invalidSig,
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 			expErr:       true,
 		},
 		"empty hash": {
 			srcSignature: correctSig,
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 			expErr:       true,
 		},
 		"hash too short": {
 			srcSignature: correctSig,
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 			srcHash:      hash[0:30],
 			expErr:       true,
 		},
 		"hash too long": {
 			srcSignature: correctSig,
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 			srcHash:      hash + "01",
 			expErr:       true,
 		},
 		"empty signature": {
 			srcHash:    hash,
-			srcETHAddr: ethAddress,
+			srcETHAddr: EthAddress{ethAddressStr},
 			expErr:     true,
 		},
 		"signature too short": {
 			srcHash:      hash,
 			srcSignature: correctSig[0:64],
-			srcETHAddr:   ethAddress,
+			srcETHAddr:   EthAddress{ethAddressStr},
 			expErr:       true,
 		},
 		"empty eth address": {
@@ -79,7 +79,7 @@ func TestValsetConfirmSig(t *testing.T) {
 			require.NoError(t, err)
 
 			// when
-			err = ValidateEthereumSignature(hashBytes, sigBytes, spec.srcETHAddr)
+			err = ValidateEthereumSignature(hashBytes, sigBytes, &spec.srcETHAddr)
 			if spec.expErr {
 				assert.Error(t, err)
 				return

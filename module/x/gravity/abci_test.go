@@ -87,7 +87,7 @@ func TestValsetSlashing_ValsetCreated_After_ValidatorBonded(t *testing.T) {
 			// don't sign with first validator
 			continue
 		}
-		conf := types.NewMsgValsetConfirm(vs.Nonce, keeper.EthAddrs[i].String(), val, "dummysig")
+		conf := types.NewMsgValsetConfirm(vs.Nonce, keeper.EthAddrs[i], val, "dummysig")
 		pk.SetValsetConfirm(ctx, *conf)
 	}
 
@@ -147,7 +147,7 @@ func TestValsetSlashing_UnbondingValidator_UnbondWindow_NotExpired(t *testing.T)
 			// don't sign with first validator
 			continue
 		}
-		conf := types.NewMsgValsetConfirm(vs.Nonce, keeper.EthAddrs[i].String(), val, "dummysig")
+		conf := types.NewMsgValsetConfirm(vs.Nonce, keeper.EthAddrs[i], val, "dummysig")
 		pk.SetValsetConfirm(ctx, *conf)
 	}
 	staking.EndBlocker(input.Context, input.StakingKeeper)
@@ -207,7 +207,7 @@ func TestBatchSlashing(t *testing.T) {
 		pk.SetBatchConfirm(ctx, &types.MsgConfirmBatch{
 			Nonce:         batch.BatchNonce,
 			TokenContract: keeper.TokenContractAddrs[0],
-			EthSigner:     keeper.EthAddrs[i].String(),
+			EthSigner:     keeper.EthAddrs[i],
 			Orchestrator:  val.String(),
 			Signature:     "",
 		})
@@ -264,10 +264,10 @@ func TestBatchTimeout(t *testing.T) {
 	var (
 		now                 = time.Now().UTC()
 		mySender, _         = sdk.AccAddressFromBech32("cosmos1ahx7f8wyertuus9r20284ej0asrs085case3kn")
-		myReceiver          = "0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"
-		myTokenContractAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5" // Pickle
+		myReceiver          = &types.EthAddress{"0xd041c41EA1bf0F006ADBb6d2c9ef9D425dE5eaD7"}
+		myTokenContractAddr = &types.EthAddress{"0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5"} // Pickle
 		allVouchers         = sdk.NewCoins(
-			types.NewERC20Token(99999, myTokenContractAddr).GravityCoin(),
+			types.NewERC20Token(99999, *myTokenContractAddr).GravityCoin(),
 		)
 	)
 
@@ -282,8 +282,8 @@ func TestBatchTimeout(t *testing.T) {
 
 	// add some TX to the pool
 	for i, v := range []uint64{2, 3, 2, 1, 5, 6} {
-		amount := types.NewERC20Token(uint64(i+100), myTokenContractAddr).GravityCoin()
-		fee := types.NewERC20Token(v, myTokenContractAddr).GravityCoin()
+		amount := types.NewERC20Token(uint64(i+100), *myTokenContractAddr).GravityCoin()
+		fee := types.NewERC20Token(v, *myTokenContractAddr).GravityCoin()
 		_, err := input.GravityKeeper.AddToOutgoingPool(ctx, mySender, myReceiver, amount, fee)
 		require.NoError(t, err)
 	}

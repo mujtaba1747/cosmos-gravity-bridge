@@ -23,9 +23,9 @@ func TestGetMostRecentAttestations(t *testing.T) {
 		msg := types.MsgSendToCosmosClaim{
 			EventNonce:     nonce,
 			BlockHeight:    1,
-			TokenContract:  "0x00000000000000000001",
+			TokenContract:  &types.EthAddress{"0x00000000000000000001"},
 			Amount:         sdktypes.NewInt(10000000000 + int64(i)),
-			EthereumSender: "0x00000000000000000002",
+			EthereumSender: &types.EthAddress{"0x00000000000000000002"},
 			CosmosReceiver: "0x00000000000000000003",
 			Orchestrator:   "0x00000000000000000004",
 		}
