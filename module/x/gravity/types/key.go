@@ -144,7 +144,7 @@ func GetEthAddressByValidatorKey(validator sdk.ValAddress) []byte {
 // prefix              cosmos-validator
 // [0xf9][0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B]
 func GetValidatorByEthAddressKey(ethAddress *EthAddress) []byte {
-	return append(ValidatorByEthAddressKey, []byte(ethAddress.Address)...)
+	return append(ValidatorByEthAddressKey, []byte(ethAddress.GetAddress())...)
 }
 
 // GetValsetKey returns the following key format
@@ -206,7 +206,7 @@ func GetAttestationKey(eventNonce uint64, claimHash []byte) []byte {
 // [0x6][0xc783df8a850f42e7F7e57013759C285caa701eB6]
 // This prefix is used for iterating over unbatched transactions for a given contract
 func GetOutgoingTxPoolContractPrefix(contractAddress *EthAddress) []byte {
-	return append(OutgoingTXPoolKey, []byte(contractAddress.Address)...)
+	return append(OutgoingTXPoolKey, []byte(contractAddress.GetAddress())...)
 }
 
 // GetOutgoingTxPoolKey returns the following key format
@@ -219,7 +219,7 @@ func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 	amount = fee.Amount.BigInt().FillBytes(amount)
 
 	a := append(amount, UInt64Bytes(id)...)
-	b := append([]byte(fee.Contract.Address), a...)
+	b := append([]byte(fee.Contract), a...)
 	r := append(OutgoingTXPoolKey, b...)
 	return r
 }
@@ -228,7 +228,7 @@ func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 // prefix     nonce                     eth-contract-address
 // [0xa][0 0 0 0 0 0 0 1][0xc783df8a850f42e7F7e57013759C285caa701eB6]
 func GetOutgoingTxBatchKey(tokenContract *EthAddress, nonce uint64) []byte {
-	return append(append(OutgoingTXBatchKey, []byte(tokenContract.Address)...), UInt64Bytes(nonce)...)
+	return append(append(OutgoingTXBatchKey, []byte(tokenContract.GetAddress())...), UInt64Bytes(nonce)...)
 }
 
 // GetOutgoingTxBatchBlockKey returns the following key format

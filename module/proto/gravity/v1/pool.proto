@@ -12,6 +12,6 @@ message IDSet {
 }
 
 message BatchFees {
-  EthAddress token      = 1;
+  string token      = 1;
   string total_fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }

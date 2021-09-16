@@ -12,7 +12,7 @@ message OutgoingTxBatch {
   uint64                      batch_nonce    = 1;
   uint64                      batch_timeout  = 2;
   repeated OutgoingTransferTx transactions   = 3;
-  EthAddress                  token_contract = 4;
+  string                  token_contract = 4;
   uint64                      block          = 5;
 }
 
@@ -20,7 +20,7 @@ message OutgoingTxBatch {
 message OutgoingTransferTx {
   uint64     id           = 1;
   string     sender       = 2;
-  EthAddress     dest_address = 3;
+  string     dest_address = 3;
   ERC20Token erc20_token  = 4;
   ERC20Token erc20_fee    = 5;
 }
@@ -29,7 +29,7 @@ message OutgoingTransferTx {
 message OutgoingLogicCall {
   repeated ERC20Token transfers              = 1;
   repeated ERC20Token fees                   = 2;
-  EthAddress          logic_contract_address = 3;
+  string          logic_contract_address = 3;
   bytes               payload                = 4;
   uint64              timeout                = 5;
   bytes               invalidation_id        = 6;

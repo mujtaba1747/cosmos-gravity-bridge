@@ -38,7 +38,7 @@ func (b OutgoingTxBatch) GetCheckpoint(gravityIDstring string) []byte {
 	txFees := make([]*big.Int, len(b.Transactions))
 	for i, tx := range b.Transactions {
 		txAmounts[i] = tx.Erc20Token.Amount.BigInt()
-		txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress.Address)
+		txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress.GetAddress())
 		txFees[i] = tx.Erc20Fee.Amount.BigInt()
 	}
 

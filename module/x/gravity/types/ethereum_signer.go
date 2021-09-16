@@ -65,7 +65,7 @@ func ValidateEthereumSignature(hash []byte, signature []byte, ethAddress *EthAdd
 	}
 	expAddr, _ := addr.Unwrap()
 
-	if expAddr.Address != ethAddress.Address {
+	if expAddr.GetAddress() != ethAddress.GetAddress() {
 		return sdkerrors.Wrap(ErrInvalid, "signature not matching")
 	}
 

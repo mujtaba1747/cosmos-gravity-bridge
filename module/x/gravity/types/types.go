@@ -40,21 +40,60 @@ func (b *BridgeValidator) ValidateBasic() error {
 	if b.Power == 0 {
 		return sdkerrors.Wrap(ErrEmpty, "power")
 	}
-	if err := b.EthereumAddress.ValidateBasic(); err != nil {
+	_, err := NewEthAddress(b.EthereumAddress)
+	if err != nil {
 		return sdkerrors.Wrap(err, "ethereum address")
 	}
 	return nil
 }
 
-// BridgeValidators is the sorted set of validator data for Ethereum bridge MultiSig set
+// Bridge Validator but with validated EthereumAddress
+type InternalBridgeValidator struct {
+	Power           uint64
+	EthereumAddress EthAddress
+}
+
+func NewInternalBridgeValidator(bridgeValidator BridgeValidator) (*InternalBridgeValidator, error) {
+	if err := bridgeValidator.ValidateBasic(); err != nil {
+		return nil, sdkerrors.Wrap(err, "invalid bridge validator")
+	}
+	// At this point the eth address is good to go
+	return &InternalBridgeValidator{
+		Power:           bridgeValidator.Power,
+		EthereumAddress: EthAddress{bridgeValidator.EthereumAddress},
+	}, nil
+}
+
+func (i InternalBridgeValidator) ToExternal() *BridgeValidator {
+	return &BridgeValidator{
+		Power:           i.Power,
+		EthereumAddress: i.EthereumAddress.GetAddress(),
+	}
+}
+
+func (i InternalBridgeValidator) ValidateBasic() error {
+	if i.Power == 0 {
+		return sdkerrors.Wrap(ErrEmpty, "power")
+	}
+	if err := i.EthereumAddress.ValidateBasic(); err != nil {
+		return sdkerrors.Wrap(err, "ethereum address")
+	}
+	return nil
+}
+
 type BridgeValidators []*BridgeValidator
 
+func (b BridgeValidators) 
+
+// InternalBridgeValidators is the sorted set of validator data for Ethereum bridge MultiSig set
+type InternalBridgeValidators []*InternalBridgeValidator
+
 // Sort sorts the validators by power
-func (b BridgeValidators) Sort() {
+func (i InternalBridgeValidators) Sort() {
 	sort.Slice(b, func(i, j int) bool {
 		if b[i].Power == b[j].Power {
 			// Secondary sort on eth address in case powers are equal
-			return EthAddrLessThan(b[i].EthereumAddress, b[j].EthereumAddress)
+			return EthAddrLessThan(&b[i].EthereumAddress, &b[j].EthereumAddress)
 		}
 		return b[i].Power > b[j].Power
 	})
@@ -74,20 +113,20 @@ func (b BridgeValidators) Sort() {
 // if the total on chain voting power increases by 1% due to inflation, we shouldn't have to generate a new validator
 // set, after all the validators retained their relative percentages during inflation and normalized Gravity bridge power
 // shows no difference.
-func (b BridgeValidators) PowerDiff(c BridgeValidators) float64 {
+func (b InternalBridgeValidators) PowerDiff(c InternalBridgeValidators) float64 {
 	powers := map[string]int64{}
 	// loop over b and initialize the map with their powers
 	for _, bv := range b {
-		powers[bv.EthereumAddress.Address] = int64(bv.Power)
+		powers[bv.EthereumAddress.GetAddress()] = int64(bv.Power)
 	}
 
 	// subtract c powers from powers in the map, initializing
 	// uninitialized keys with negative numbers
 	for _, bv := range c {
-		if val, ok := powers[bv.EthereumAddress.Address]; ok {
-			powers[bv.EthereumAddress.Address] = val - int64(bv.Power)
+		if val, ok := powers[bv.EthereumAddress.GetAddress()]; ok {
+			powers[bv.EthereumAddress.GetAddress()] = val - int64(bv.Power)
 		} else {
-			powers[bv.EthereumAddress.Address] = -int64(bv.Power)
+			powers[bv.EthereumAddress.GetAddress()] = -int64(bv.Power)
 		}
 	}
 
@@ -101,7 +140,7 @@ func (b BridgeValidators) PowerDiff(c BridgeValidators) float64 {
 }
 
 // TotalPower returns the total power in the bridge validator set
-func (b BridgeValidators) TotalPower() (out uint64) {
+func (b InternalBridgeValidators) TotalPower() (out uint64) {
 	for _, v := range b {
 		out += v.Power
 	}
@@ -109,16 +148,16 @@ func (b BridgeValidators) TotalPower() (out uint64) {
 }
 
 // HasDuplicates returns true if there are duplicates in the set
-func (b BridgeValidators) HasDuplicates() bool {
+func (b InternalBridgeValidators) HasDuplicates() bool {
 	m := make(map[string]struct{}, len(b))
 	for i := range b {
-		m[b[i].EthereumAddress.Address] = struct{}{}
+		m[b[i].EthereumAddress.GetAddress()] = struct{}{}
 	}
 	return len(m) != len(b)
 }
 
 // GetPowers returns only the power values for all members
-func (b BridgeValidators) GetPowers() []uint64 {
+func (b InternalBridgeValidators) GetPowers() []uint64 {
 	r := make([]uint64, len(b))
 	for i := range b {
 		r[i] = b[i].Power
@@ -127,7 +166,7 @@ func (b BridgeValidators) GetPowers() []uint64 {
 }
 
 // ValidateBasic performs stateless checks
-func (b BridgeValidators) ValidateBasic() error {
+func (b InternalBridgeValidators) ValidateBasic() error {
 	// TODO: check if the set is sorted here?
 	if len(b) == 0 {
 		return ErrEmpty
@@ -144,7 +183,7 @@ func (b BridgeValidators) ValidateBasic() error {
 }
 
 // NewValset returns a new valset
-func NewValset(nonce, height uint64, members BridgeValidators, rewardAmount sdk.Int, rewardToken *EthAddress) *Valset {
+func NewValset(nonce, height uint64, members InternalBridgeValidators, rewardAmount sdk.Int, rewardToken *EthAddress) *Valset {
 	members.Sort()
 	var mem []*BridgeValidator
 	for _, val := range members {
